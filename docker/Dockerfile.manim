@@ -1,0 +1,37 @@
+# ============================================================
+# DIME — Manim Sandbox Docker Image
+# Isolated, resource-limited container for safe Manim rendering
+# ============================================================
+
+FROM python:3.11-slim
+
+# Install system dependencies: LaTeX + FFmpeg + OpenGL
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    texlive-latex-base \
+    texlive-latex-extra \
+    texlive-fonts-recommended \
+    texlive-science \
+    texlive-latex-recommended \
+    dvipng \
+    dvisvgm \
+    ffmpeg \
+    libcairo2-dev \
+    libpango1.0-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages
+RUN pip install --no-cache-dir \
+    manim==0.18.1 \
+    numpy \
+    scipy
+
+# Create output directory (only writable location)
+RUN mkdir -p /output /workspace
+WORKDIR /workspace
+
+# Default command: render a scene file
+# Usage: docker run -v /path/to/scene.py:/workspace/scene.py dime-manim-sandbox \
+#        manim render -qh --format mp4 scene.py SceneName -o /output/scene.mp4
+ENTRYPOINT ["manim", "render"]
+CMD ["-qh", "--format", "mp4"]
